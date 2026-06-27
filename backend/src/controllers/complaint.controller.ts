@@ -29,16 +29,39 @@ export class ComplaintController {
       const userId = req.user!.id;
       const { title, description, category, severity, latitude, longitude, ward, address } = req.body;
 
-      // Leverage Gemini API
-      const priorityScore = await GeminiService.generatePriority(description, severity);
+      // Check for duplicates
+      const isDuplicate = await ComplaintService.checkForDuplicate(
+        parseFloat(latitude),
+        parseFloat(longitude),
+        category
+      );
+
+      // Leverage Comprehensive Gemini API
+      let priorityScore = severity === 'High' ? 8 : severity === 'Medium' ? 5 : 2;
+      let aiAnalysis = null;
+      let finalCategory = category;
+
+      if (description) {
+        aiAnalysis = await GeminiService.analyzeComplaintDetails(description, severity);
+        if (aiAnalysis) {
+          priorityScore = aiAnalysis.priorityScore;
+          if (aiAnalysis.category && aiAnalysis.category !== 'Others') {
+             finalCategory = aiAnalysis.category;
+          }
+        }
+      }
       
       const newComplaint = await ComplaintService.createComplaint({
         userId,
         title,
         description,
-        category,
+        category: finalCategory as any,
         severity,
         priorityScore,
+        language: aiAnalysis?.language,
+        translatedDescription: aiAnalysis?.translatedDescription,
+        sentiment: aiAnalysis?.sentiment,
+        isDuplicate,
         latitude: parseFloat(latitude),
         longitude: parseFloat(longitude),
         ward,
@@ -126,6 +149,34 @@ export class ComplaintController {
       if (!description) return res.status(400).json({ error: 'Description is required' });
       const analysis = await GeminiService.analyzeComplaint(description);
       res.status(200).json({ data: { analysis } });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // Dashboard Stats
+  static async getDashboardStats(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const stats = await ComplaintService.getDashboardStats();
+      res.status(200).json({ data: stats });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // Heatmap Data
+  static async getHeatmapData(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      // Just fetch all complaints (or could be filtered by status/category)
+      const complaints = await ComplaintService.getComplaints();
+      const heatmapData = complaints.map(c => ({
+        id: c.id,
+        latitude: c.latitude,
+        longitude: c.longitude,
+        weight: c.priorityScore || 1, // weight for Google Maps Heatmap
+        category: c.category,
+      }));
+      res.status(200).json({ data: heatmapData });
     } catch (error) {
       next(error);
     }

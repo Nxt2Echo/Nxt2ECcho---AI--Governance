@@ -40,6 +40,10 @@ export interface Complaint {
   category: Category;
   severity: string; // e.g., Low, Medium, High
   priorityScore: number;
+  language?: string;
+  translatedDescription?: string;
+  sentiment?: string;
+  isDuplicate?: boolean;
   latitude: number;
   longitude: number;
   ward: string;

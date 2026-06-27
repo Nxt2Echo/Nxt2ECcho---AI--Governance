@@ -18,6 +18,8 @@ router.post(
 );
 
 router.get('/', ComplaintController.getComplaints);
+router.get('/dashboard/stats', authorize([Role.ADMIN]), ComplaintController.getDashboardStats);
+router.get('/heatmap', ComplaintController.getHeatmapData);
 router.get('/:id', ComplaintController.getComplaintById);
 
 // Update/Delete routes might be restricted to specific roles, or the user who created it.

@@ -8,6 +8,55 @@ if (env.GEMINI_API_KEY) {
 
 export class GeminiService {
   /**
+   * Comprehensive analysis of a complaint for multilingual support, sentiment, and classification
+   */
+  static async analyzeComplaintDetails(description: string, severity: string): Promise<{
+    language: string;
+    translatedDescription: string;
+    sentiment: string;
+    priorityScore: number;
+    category: string;
+  } | null> {
+    if (!ai) return null;
+
+    try {
+      const prompt = `
+        Analyze the following citizen complaint and provide a JSON response with the following keys:
+        - "language": Detected language of the complaint (e.g., English, Hindi, Spanish).
+        - "translatedDescription": The exact complaint translated into English (if it is already English, just return it).
+        - "sentiment": The sentiment of the user (e.g., Angry, Neutral, Frustrated, Urgent).
+        - "priorityScore": A number from 1 to 10 based on urgency. The user provided severity level is "${severity}".
+        - "category": Classify into one of these EXACT categories: Water Supply, Garbage, Road Damage, Street Lights, Drainage, Air Pollution, Flood, Others.
+        
+        Complaint: "${description}"
+
+        Return ONLY a valid JSON object. No markdown, no code blocks, just the JSON string.
+      `;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+      });
+
+      const text = response.text?.trim() || '{}';
+      // Basic cleanup in case Gemini wraps in markdown despite instructions
+      const cleanText = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+      
+      const result = JSON.parse(cleanText);
+      return {
+        language: result.language || 'English',
+        translatedDescription: result.translatedDescription || description,
+        sentiment: result.sentiment || 'Neutral',
+        priorityScore: typeof result.priorityScore === 'number' ? result.priorityScore : parseInt(result.priorityScore || '5', 10),
+        category: result.category || 'Others',
+      };
+    } catch (error) {
+      console.error('Gemini analyzeComplaintDetails error:', error);
+      return null;
+    }
+  }
+
+  /**
    * Analyze complaint details to detect complex issues
    */
   static async analyzeComplaint(description: string): Promise<string> {
