@@ -7,7 +7,9 @@ import { swaggerSpec } from './docs/swagger';
 
 import authRoutes from './routes/auth.routes';
 import complaintRoutes from './routes/complaint.routes';
+import geminiRoutes from './routes/gemini.routes';
 import { errorHandler } from './middlewares/error';
+
 
 const app = express();
 
@@ -28,6 +30,8 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/complaints', complaintRoutes);
+app.use('/api/gemini', geminiRoutes);
+
 
 // Base route
 app.get('/', (req, res) => {
