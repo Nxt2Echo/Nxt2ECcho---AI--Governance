@@ -5,76 +5,123 @@ import {
   Map,
   BarChart3,
   Settings,
+  ChevronRight,
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
 } from "lucide-react";
-
 import { Link, useLocation } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 const menuItems = [
   { name: "Dashboard", path: "/", icon: LayoutDashboard },
-  { name: "Complaints", path: "/complaints", icon: FileText },
-  { name: "AI Analysis", path: "/analysis", icon: Brain },
+  { name: "Complaints", path: "/complaints", icon: FileText, badge: "1.2k" },
+  { name: "AI Analysis", path: "/analysis", icon: Brain, badge: "New" },
   { name: "Heatmap", path: "/heatmap", icon: Map },
   { name: "Reports", path: "/reports", icon: BarChart3 },
   { name: "Settings", path: "/settings", icon: Settings },
+];
+
+const quickStats = [
+  { label: "Critical", value: "89", icon: AlertTriangle, color: "text-red-400" },
+  { label: "Pending", value: "1.2k", icon: Clock, color: "text-amber-400" },
+  { label: "Resolved", value: "3.2k", icon: CheckCircle2, color: "text-emerald-400" },
 ];
 
 export default function Sidebar() {
   const location = useLocation();
 
   return (
-    <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col">
-
-      <div className="p-6 border-b border-slate-800">
-        <h1 className="text-2xl font-bold text-white">
-          Nxt2Echo
-        </h1>
-
-        <p className="text-sm text-slate-400 mt-1">
-          AI Governance
-        </p>
+    <aside className="w-64 bg-card border-r border-border flex flex-col shrink-0">
+      {/* Brand */}
+      <div className="px-5 py-5 border-b border-border">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-primary/20 border border-primary/30 flex items-center justify-center shrink-0">
+            <Brain size={16} className="text-primary" />
+          </div>
+          <div>
+            <h1 className="text-sm font-bold text-foreground tracking-tight">Nxt2Echo</h1>
+            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">AI Governance</p>
+          </div>
+        </div>
       </div>
 
-      <nav className="flex-1 mt-6 px-3">
+      {/* Navigation */}
+      <nav className="flex-1 py-4 px-3 overflow-y-auto">
+        <p className="px-3 mb-2 text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+          Navigation
+        </p>
 
         {menuItems.map((item) => {
-
           const Icon = item.icon;
-
           const active = location.pathname === item.path;
 
           return (
-
             <Link
               key={item.name}
               to={item.path}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl mb-2 transition-all
-              ${
+              className={cn(
+                "group flex items-center gap-3 px-3 py-2.5 rounded-lg mb-0.5 transition-all duration-150 text-sm font-medium",
                 active
-                  ? "bg-blue-600 text-white"
-                  : "text-slate-300 hover:bg-slate-800"
-              }`}
+                  ? "bg-primary/15 text-primary border border-primary/20"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+              )}
             >
-              <Icon size={20} />
-
-              {item.name}
-
+              <Icon size={16} className={cn("shrink-0", active ? "text-primary" : "")} />
+              <span className="flex-1">{item.name}</span>
+              {item.badge && (
+                <span className={cn(
+                  "text-[10px] font-semibold px-1.5 py-0.5 rounded-full",
+                  active
+                    ? "bg-primary/20 text-primary"
+                    : "bg-secondary text-muted-foreground"
+                )}>
+                  {item.badge}
+                </span>
+              )}
+              {active && (
+                <ChevronRight size={12} className="text-primary opacity-60" />
+              )}
             </Link>
-
           );
         })}
 
+        {/* Quick Stats */}
+        <div className="mt-6">
+          <p className="px-3 mb-2 text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+            Live Stats
+          </p>
+          <div className="rounded-lg border border-border bg-background/50 p-3 space-y-2">
+            {quickStats.map((stat) => {
+              const Icon = stat.icon;
+              return (
+                <div key={stat.label} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Icon size={12} className={stat.color} />
+                    {stat.label}
+                  </div>
+                  <span className={cn("text-xs font-bold", stat.color)}>{stat.value}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </nav>
 
-      <div className="p-5 border-t border-slate-800">
-
-        <p className="text-xs text-slate-500">
-
-          Nxt2Echo v1.0
-
-        </p>
-
+      {/* User Profile Footer */}
+      <div className="p-3 border-t border-border">
+        <div className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-accent cursor-pointer transition-colors">
+          <div className="w-7 h-7 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-xs font-bold text-primary shrink-0">
+            GO
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium text-foreground truncate">Gov. Officer</p>
+            <p className="text-[10px] text-muted-foreground truncate">BBMP — Bengaluru</p>
+          </div>
+          <ChevronRight size={12} className="text-muted-foreground" />
+        </div>
       </div>
-
     </aside>
   );
 }
