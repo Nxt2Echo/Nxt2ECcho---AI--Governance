@@ -3,6 +3,7 @@
 A complete production-ready backend built with Express.js, TypeScript, Firebase, and Gemini AI integration.
 
 ## Architecture & Tech Stack
+
 - **Node.js & Express.js**
 - **TypeScript**
 - **Firebase Authentication & Firestore & Storage**
@@ -10,6 +11,7 @@ A complete production-ready backend built with Express.js, TypeScript, Firebase,
 - **MVC Architecture**
 
 ## Prerequisites
+
 - Node.js (v18+ recommended)
 - Firebase Project with Firestore and Storage enabled
 - Google Gemini API Key
@@ -17,6 +19,7 @@ A complete production-ready backend built with Express.js, TypeScript, Firebase,
 ## Setup Instructions
 
 1. **Install dependencies**
+
    ```bash
    npm install
    ```
@@ -30,6 +33,7 @@ A complete production-ready backend built with Express.js, TypeScript, Firebase,
    - `GEMINI_API_KEY`: Your Google Gemini API key
 
 3. **Run Development Server**
+
    ```bash
    npm run dev
    ```
@@ -45,11 +49,14 @@ A complete production-ready backend built with Express.js, TypeScript, Firebase,
 The backend exposes several RESTful endpoints. Here are the core functionalities:
 
 ### 1. Authentication (`/api/auth`)
+
 - **POST `/api/auth/register`**: Registers a new user. Expects `email`, `password`, `name`, and `role` (e.g., Citizen, Admin).
 - **POST `/api/auth/login`**: Authenticates a user using their Firebase `uid` and returns a JWT token.
 
 ### 2. Complaints Management (`/api/complaints`)
-*Note: All complaint routes require JWT authentication (`Bearer <token>`).*
+
+_Note: All complaint routes require JWT authentication (`Bearer <token>`)._
+
 - **POST `/api/complaints/`**: Creates a new complaint. Supports `multipart/form-data` for file uploads (max 1 `image` and 1 `voice` note). Expects `title`, `description`, `category`, `severity`, `latitude`, `longitude`, `ward`, and `address`.
 - **GET `/api/complaints/`**: Retrieves a list of complaints.
 - **GET `/api/complaints/dashboard/stats`**: Admin route. Retrieves aggregated statistics of complaints (by status, category, ward).
@@ -60,12 +67,15 @@ The backend exposes several RESTful endpoints. Here are the core functionalities
 - **POST `/api/complaints/analyze`**: Admin utility route to analyze a complaint using Gemini AI.
 
 ### 3. Gemini AI Integration (`/api/gemini`)
+
 - **POST `/api/gemini/chat`**: Initiates a chat request with the Gemini AI model. Expects a JSON body with a `prompt`.
 - **GET `/api/gemini/chat`**: Alternative GET endpoint for Gemini AI chat.
 
 ## API Documentation
+
 Once the server is running, you can access the Swagger UI documentation at:
 `http://localhost:5000/api-docs`
 
 ## Postman Collection
+
 Import `postman_collection.json` into Postman to test the APIs quickly.
