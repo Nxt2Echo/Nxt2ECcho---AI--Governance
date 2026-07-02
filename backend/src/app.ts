@@ -9,6 +9,7 @@ import authRoutes from './routes/auth.routes';
 import complaintRoutes from './routes/complaint.routes';
 import geminiRoutes from './routes/gemini.routes';
 import healthRoutes from './routes/health.routes';
+import analysisRoutes from './routes/analysis.routes';
 import { errorHandler } from './middlewares/error';
 
 
@@ -33,6 +34,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/complaints', complaintRoutes);
 app.use('/api/gemini', geminiRoutes);
 app.use('/api/health', healthRoutes);
+app.use('/api/analysis', analysisRoutes);
 
 
 // Base route
