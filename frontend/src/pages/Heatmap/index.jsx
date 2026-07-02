@@ -6,8 +6,23 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import {
   MapPin, AlertTriangle, AlertCircle, CheckCircle2,
-  Thermometer, TrendingUp, TrendingDown, Map, Info,
+  Thermometer, TrendingUp, TrendingDown, Map, Info, ChevronDown
 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { MapContainer, TileLayer, Marker, Popup, CircleMarker, useMap } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+
+// Fix Leaflet's default icon path issues
+import L from 'leaflet';
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+let DefaultIcon = L.icon({
+    iconUrl: icon,
+    shadowUrl: iconShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41]
+});
+L.Marker.prototype.options.icon = DefaultIcon;
 
 const riskConfig = {
   Critical: { icon: AlertTriangle, color: "text-red-400", bg: "bg-red-500/10", border: "border-red-500/20", badge: "critical" },
@@ -16,8 +31,29 @@ const riskConfig = {
   Low: { icon: CheckCircle2, color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20", badge: "low" },
 };
 
+const stateCoordinates = {
+  "Karnataka": [15.3173, 75.7139],
+  "Maharashtra": [19.7515, 75.7139],
+  "Delhi": [28.7041, 77.1025],
+  "Tamil Nadu": [11.1271, 78.6569],
+  "Gujarat": [22.2587, 71.1924],
+  "Kerala": [10.8505, 76.2711]
+};
+
+// Component to dynamically update map center when state changes
+function MapUpdater({ center }) {
+  const map = useMap();
+  useEffect(() => {
+    map.flyTo(center, 6, { animate: true });
+  }, [center, map]);
+  return null;
+}
+
 export default function Heatmap() {
-  const { heatmapZones, loading, error } = useHeatmap();
+  const [selectedState, setSelectedState] = useState("Karnataka");
+  const { heatmapZones, loading, error } = useHeatmap(selectedState);
+  
+  const center = stateCoordinates[selectedState] || [20.5937, 78.9629];
 
   const riskSummary = {
     Critical: heatmapZones.filter((z) => z.risk === "Critical"),
@@ -27,6 +63,8 @@ export default function Heatmap() {
   };
   const totalComplaints = heatmapZones.reduce((a, b) => a + b.complaints, 0) || 1;
 
+  const states = ["Karnataka", "Maharashtra", "Delhi", "Tamil Nadu", "Gujarat", "Kerala"];
+
   return (
     <DashboardLayout>
       <div className="space-y-5">
@@ -35,12 +73,20 @@ export default function Heatmap() {
           <div>
             <h1 className="text-xl font-bold text-foreground tracking-tight">Complaint Heatmap</h1>
             <p className="text-sm text-muted-foreground mt-0.5">
-              Geographic complaint distribution · Bengaluru Metropolitan Area
+              Geographic complaint distribution · {selectedState}, IN
             </p>
           </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground bg-card border border-border rounded-lg px-3 py-2">
-            <Info size={12} />
-            Backend map integration pending
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <select
+                value={selectedState}
+                onChange={(e) => setSelectedState(e.target.value)}
+                className="appearance-none bg-card border border-border rounded-lg pl-3 pr-8 py-2 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+              >
+                {states.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+            </div>
           </div>
         </div>
 
@@ -84,63 +130,78 @@ export default function Heatmap() {
           )}
         </div>
 
-        {/* Map Placeholder */}
+        {/* Interactive Map */}
         <Card className="border-border overflow-hidden">
-          <div className="relative h-72 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
-            {/* Decorative grid */}
-            <div className="absolute inset-0 opacity-10"
-              style={{
-                backgroundImage: "linear-gradient(oklch(1 0 0 / 10%) 1px, transparent 1px), linear-gradient(90deg, oklch(1 0 0 / 10%) 1px, transparent 1px)",
-                backgroundSize: "40px 40px",
-              }}
-            />
+          <div className="relative h-96 w-full z-0 bg-slate-900">
+            <MapContainer 
+              center={center} 
+              zoom={6} 
+              style={{ height: '100%', width: '100%' }}
+              zoomControl={false}
+              className="z-0"
+            >
+              <TileLayer
+                url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+              />
+              <MapUpdater center={center} />
+              
+              {!loading && heatmapZones.map((zone) => {
+                const config = riskConfig[zone.risk] ?? riskConfig.Low;
+                // Since the mock data in useHeatmap currently hardcodes Bengaluru coordinates,
+                // we'll randomly scatter them around the state center just for visual effect.
+                const offsetLat = center[0] + (Math.random() - 0.5) * 4;
+                const offsetLng = center[1] + (Math.random() - 0.5) * 4;
+                const zonePos = [offsetLat, offsetLng];
+                
+                const colors = {
+                  Critical: "#ef4444",
+                  High: "#f97316",
+                  Medium: "#f59e0b",
+                  Low: "#10b981"
+                };
 
-            {/* Simulated hotspot blobs */}
-            <div className="absolute top-[30%] left-[45%] w-20 h-20 rounded-full bg-red-500/30 blur-2xl animate-pulse" />
-            <div className="absolute top-[20%] left-[60%] w-16 h-16 rounded-full bg-orange-500/25 blur-2xl animate-pulse" style={{ animationDelay: "0.5s" }} />
-            <div className="absolute top-[50%] left-[30%] w-14 h-14 rounded-full bg-orange-500/20 blur-xl" />
-            <div className="absolute top-[60%] left-[55%] w-12 h-12 rounded-full bg-amber-500/20 blur-xl" style={{ animationDelay: "1s" }} />
-            <div className="absolute top-[40%] left-[20%] w-10 h-10 rounded-full bg-emerald-500/20 blur-xl" />
+                return (
+                  <CircleMarker 
+                    key={zone.id} 
+                    center={zonePos} 
+                    radius={Math.max(10, zone.complaints / 20)}
+                    pathOptions={{ 
+                      fillColor: colors[zone.risk], 
+                      color: colors[zone.risk], 
+                      weight: 1, 
+                      fillOpacity: 0.4 
+                    }}
+                  >
+                    <Popup className="custom-popup">
+                      <div className="text-xs">
+                        <strong className="block text-sm mb-1">{zone.name}</strong>
+                        <span className="text-muted-foreground block">Category: {zone.category}</span>
+                        <span className="text-muted-foreground block">Complaints: {zone.complaints}</span>
+                        <span className={`block font-semibold ${config.color} mt-1`}>Risk: {zone.risk}</span>
+                      </div>
+                    </Popup>
+                  </CircleMarker>
+                );
+              })}
+            </MapContainer>
 
-            {/* Zone pins (rendered from API data once loaded) */}
-            {!loading && heatmapZones.slice(0, 6).map((zone, i) => {
-              const positions = [
-                { top: "32%", left: "47%" }, { top: "22%", left: "62%" },
-                { top: "52%", left: "32%" }, { top: "62%", left: "57%" },
-                { top: "42%", left: "22%" }, { top: "28%", left: "38%" },
-              ];
-              const config = riskConfig[zone.risk] ?? riskConfig.Low;
-              const Icon = config.icon;
-              return (
-                <div
-                  key={zone.id}
-                  className="absolute cursor-pointer group"
-                  style={positions[i]}
-                >
-                  <div className={`w-8 h-8 rounded-full ${config.bg} ${config.border} border flex items-center justify-center shadow-lg`}>
-                    <Icon size={12} className={config.color} />
-                  </div>
-                  <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-32 bg-popover border border-border rounded-lg p-2 shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                    <p className="text-[10px] font-semibold text-foreground">{zone.name}</p>
-                    <p className="text-[9px] text-muted-foreground">{zone.complaints} complaints</p>
-                  </div>
+            {/* Loading Overlay */}
+            {loading && (
+              <div className="absolute inset-0 z-[1000] bg-background/50 backdrop-blur-sm flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                  <p className="text-sm font-medium text-foreground">Loading {selectedState} Data...</p>
                 </div>
-              );
-            })}
-
-            {/* Center overlay */}
-            <div className="text-center z-10">
-              <Map size={32} className="text-muted-foreground/40 mx-auto mb-2" />
-              <p className="text-sm font-medium text-muted-foreground">Bengaluru Heatmap</p>
-              <p className="text-xs text-muted-foreground/60">Interactive map — backend integration pending</p>
-            </div>
+              </div>
+            )}
 
             {/* Legend */}
-            <div className="absolute bottom-3 right-3 flex items-center gap-2 bg-card/90 border border-border rounded-lg px-3 py-1.5">
+            <div className="absolute bottom-3 right-3 z-[1000] flex items-center gap-2 bg-card/90 border border-border rounded-lg px-3 py-1.5 shadow-lg backdrop-blur-md">
               {Object.entries(riskConfig).map(([risk, cfg]) => (
                 <div key={risk} className="flex items-center gap-1">
                   <span className={`w-2 h-2 rounded-full ${cfg.bg} border ${cfg.border}`} />
-                  <span className="text-[9px] text-muted-foreground">{risk}</span>
+                  <span className="text-[9px] text-muted-foreground font-medium">{risk}</span>
                 </div>
               ))}
             </div>

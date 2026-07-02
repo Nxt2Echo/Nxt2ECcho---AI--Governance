@@ -164,6 +164,12 @@ export const fallbackReportTemplates = [
   { id: 4, title: "Critical Issues Report", description: "All Critical and High priority complaints with resolution status", type: "PDF", frequency: "Daily", lastGenerated: "Jun 27, 2024", size: "0.9 MB", category: "critical" },
   { id: 5, title: "Heatmap & Geographic Report", description: "Zone-wise complaint distribution with geographic visualizations", type: "PDF", frequency: "Weekly", lastGenerated: "Jun 24, 2024", size: "5.2 MB", category: "heatmap" },
   { id: 6, title: "Citizen Satisfaction Report", description: "Feedback analysis and satisfaction scores by area and department", type: "XLSX", frequency: "Monthly", lastGenerated: "Jun 01, 2024", size: "2.1 MB", category: "satisfaction" },
+  { id: 7, title: "Infrastructure Damage Assessment", description: "Comprehensive breakdown of infrastructure-related complaints and estimated costs", type: "PDF", frequency: "Weekly", lastGenerated: "Jun 23, 2024", size: "3.4 MB", category: "department" },
+  { id: 8, title: "Predictive Analytics Forecast", description: "AI-driven forecast of complaint surges for the upcoming week", type: "PDF", frequency: "Weekly", lastGenerated: "Jun 25, 2024", size: "1.5 MB", category: "ai" },
+  { id: 9, title: "Daily Operations Digest", description: "Snapshot of all new, resolved, and escalated complaints within the last 24 hours", type: "PDF", frequency: "Daily", lastGenerated: "Today", size: "0.5 MB", category: "executive" },
+  { id: 10, title: "Sanitation Compliance Log", description: "Detailed logging of sanitation and waste management compliance across zones", type: "XLSX", frequency: "Weekly", lastGenerated: "Jun 22, 2024", size: "1.2 MB", category: "department" },
+  { id: 11, title: "Emergency Incidents Overview", description: "Summary of complaints flagged as life-threatening or severe emergencies", type: "PDF", frequency: "Daily", lastGenerated: "Today", size: "0.7 MB", category: "critical" },
+  { id: 12, title: "Zone Congestion Heatmap Data", description: "Raw dataset of geographical complaint coordinates and intensity weights", type: "CSV", frequency: "Monthly", lastGenerated: "Jun 01, 2024", size: "8.1 MB", category: "heatmap" },
 ];
 
 export const fallbackWeeklyStats = {

@@ -20,17 +20,18 @@ export default function CategoryRadarChart() {
   return (
     <div className="h-[300px] w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <RadarChart cx="50%" cy="50%" outerRadius="70%" data={aiCategoryConfidence}>
-          <PolarGrid stroke="hsl(var(--border))" />
-          <PolarAngleAxis dataKey="subject" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
+        <RadarChart cx="50%" cy="50%" outerRadius="45%" data={aiCategoryConfidence}>
+          <PolarGrid gridType="polygon" stroke="#ffffff" strokeOpacity={0.3} strokeWidth={2} />
+          <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 9, fontWeight: 500 }} />
           <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
           <Tooltip content={<CustomTooltip />} />
           <Radar
             name="AI Confidence"
             dataKey="A"
-            stroke="hsl(var(--primary))"
-            fill="hsl(var(--primary))"
-            fillOpacity={0.3}
+            stroke="#0ea5e9"
+            strokeWidth={3}
+            fill="#0ea5e9"
+            fillOpacity={0.6}
           />
         </RadarChart>
       </ResponsiveContainer>

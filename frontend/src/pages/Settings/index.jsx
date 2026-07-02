@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,11 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { useTheme } from "@/contexts/ThemeContext";
 import {
   User, Bell, Palette, Brain, Shield, Key,
   Save, Mail, Phone, Building2, Globe, Moon,
-  Sun, Monitor, Check, AlertTriangle, Lock,
+  Sun, Monitor, Check, AlertTriangle, Lock, RefreshCw,
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 function SettingRow({ label, description, children }) {
   return (
@@ -48,29 +50,56 @@ const APPEARANCE_OPTIONS = [
 ];
 
 export default function Settings() {
+  const { theme, setTheme } = useTheme();
+  const { user, updateUser } = useAuth();
+  const [avatar, setAvatar] = useState(user?.avatar || null);
+  
   const [profile, setProfile] = useState({
-    name: "Government Officer",
-    email: "officer@bbmp.gov.in",
-    phone: "+91 98765 43210",
-    department: "BBMP",
-    city: "Bengaluru",
-    role: "Senior Administrator",
+    name: user?.name || "Government Officer",
+    email: user?.email || "officer@bbmp.gov.in",
+    phone: user?.phone || "+91 98765 43210",
+    department: user?.department || "BBMP",
+    city: user?.city || "Bengaluru",
+    role: user?.role || "Senior Administrator",
   });
   const [notifications, setNotifications] = useState({
     critical: true, highPriority: true, dailyReport: true,
     weeklyReport: false, aiInsights: true, emailAlerts: true,
     smsAlerts: false, duplicateDetected: true,
   });
-  const [appearance, setAppearance] = useState("dark");
   const [aiPrefs, setAiPrefs] = useState({
     autoClassify: true, autoMerge: false, sentimentAnalysis: true,
     predictiveAlerts: true, routingOptimization: true, minConfidence: 80,
   });
   const [saved, setSaved] = useState(false);
+  const [deactivateState, setDeactivateState] = useState("idle"); // idle | confirming | done
 
   const handleSave = () => {
+    updateUser({ ...profile, avatar });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handleDeactivate = () => {
+    setDeactivateState("confirming");
+    setTimeout(() => {
+      setDeactivateState("done");
+    }, 2000); // simulate API call
+  };
+
+  const handleUndo = () => {
+    setDeactivateState("idle");
+  };
+
+  const handlePhotoUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatar(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
@@ -128,17 +157,27 @@ export default function Settings() {
                 <CardContent className="p-4 pt-0">
                   {/* Avatar */}
                   <div className="flex items-center gap-4 mb-5 p-4 rounded-xl bg-card border border-border">
-                    <div className="w-16 h-16 rounded-2xl bg-primary/20 border-2 border-primary/30 flex items-center justify-center text-xl font-bold text-primary">
-                      GO
+                    <div className="relative w-16 h-16 rounded-2xl overflow-hidden bg-primary/20 border-2 border-primary/30 flex items-center justify-center text-xl font-bold text-primary">
+                      {avatar ? (
+                        <img src={avatar} alt="Profile" className="w-full h-full object-cover" />
+                      ) : (
+                        profile.name?.substring(0, 2).toUpperCase() || "GO"
+                      )}
                     </div>
                     <div>
                       <p className="font-semibold text-foreground">{profile.name}</p>
                       <p className="text-sm text-muted-foreground">{profile.role}</p>
                       <Badge variant="info" className="text-[10px] mt-1">{profile.department}</Badge>
                     </div>
-                    <button className="ml-auto text-xs text-primary hover:text-primary/80 border border-primary/20 rounded-lg px-3 py-1.5 transition-colors hover:bg-primary/10">
+                    <label className="ml-auto cursor-pointer text-xs text-primary hover:text-primary/80 border border-primary/20 rounded-lg px-3 py-1.5 transition-colors hover:bg-primary/10">
                       Change Photo
-                    </button>
+                      <input 
+                        type="file" 
+                        className="hidden" 
+                        accept="image/*"
+                        onChange={handlePhotoUpload} 
+                      />
+                    </label>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -232,18 +271,18 @@ export default function Settings() {
                     {APPEARANCE_OPTIONS.map(({ id, label, icon: Icon }) => (
                       <button
                         key={id}
-                        onClick={() => setAppearance(id)}
+                        onClick={() => setTheme(id)}
                         className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
-                          appearance === id
+                          theme === id
                             ? "border-primary bg-primary/10"
                             : "border-border bg-card hover:border-primary/30"
                         }`}
                       >
-                        <Icon size={22} className={appearance === id ? "text-primary" : "text-muted-foreground"} />
-                        <span className={`text-xs font-medium ${appearance === id ? "text-primary" : "text-muted-foreground"}`}>
+                        <Icon size={22} className={theme === id ? "text-primary" : "text-muted-foreground"} />
+                        <span className={`text-xs font-medium ${theme === id ? "text-primary" : "text-muted-foreground"}`}>
                           {label}
                         </span>
-                        {appearance === id && (
+                        {theme === id && (
                           <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center">
                             <Check size={10} className="text-primary-foreground" />
                           </div>
@@ -369,9 +408,34 @@ export default function Settings() {
                   <p className="text-xs text-muted-foreground mb-3">
                     These actions are irreversible. Proceed with caution.
                   </p>
-                  <button className="text-xs px-4 py-2 rounded-lg border border-destructive/30 text-destructive hover:bg-destructive/10 transition-colors">
-                    Deactivate Account
-                  </button>
+                  <div className="flex items-center gap-3">
+                    {deactivateState === "idle" && (
+                      <button 
+                        onClick={handleDeactivate}
+                        className="text-xs px-4 py-2 rounded-lg border border-destructive/30 text-destructive hover:bg-destructive/10 transition-colors"
+                      >
+                        Deactivate Account
+                      </button>
+                    )}
+                    {deactivateState === "confirming" && (
+                      <button disabled className="text-xs px-4 py-2 rounded-lg border border-destructive/30 text-destructive opacity-50 flex items-center gap-2">
+                        <RefreshCw size={12} className="animate-spin" /> Deactivating...
+                      </button>
+                    )}
+                    {deactivateState === "done" && (
+                      <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/20 px-3 py-2 rounded-lg w-full justify-between">
+                        <span className="text-xs text-destructive font-medium flex items-center gap-2">
+                          <Check size={14} /> Account scheduled for deletion
+                        </span>
+                        <button 
+                          onClick={handleUndo}
+                          className="text-xs text-foreground font-semibold px-3 py-1 bg-background border border-border rounded-md hover:bg-muted"
+                        >
+                          Undo
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             </div>

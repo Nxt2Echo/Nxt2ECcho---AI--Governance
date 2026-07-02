@@ -13,6 +13,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { useState } from "react";
 
 const categoryIconMap = {
   executive: FileText,
@@ -41,6 +42,37 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 export default function Reports() {
   const { reportTemplates, weeklyStats, complaintTrendData, departmentData, loading, error } = useReports();
+  const [filterFreq, setFilterFreq] = useState("All");
+
+  const handleDownload = (filename, type) => {
+    let content = "";
+    
+    if (type === "CSV" || type === "XLSX") {
+      // Generate some dummy CSV content
+      content = "ID,Category,Status,Date\n1,Sanitation,Resolved,2024-01-01\n2,Traffic,Pending,2024-01-02";
+      const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `${filename.replace(/\s+/g, '_').toLowerCase()}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      // Generate some dummy text/pdf content
+      content = `Report: ${filename}\nDate: ${new Date().toLocaleDateString()}\n\nThis is a generated report.`;
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8;' });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `${filename.replace(/\s+/g, '_').toLowerCase()}.txt`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -131,7 +163,22 @@ export default function Reports() {
 
           {/* Report Library */}
           <TabsContent value="reports">
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div className="flex gap-2 my-4">
+              {["All", "Daily", "Weekly", "Monthly"].map(f => (
+                <button
+                  key={f}
+                  onClick={() => setFilterFreq(f)}
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                    filterFreq === f
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-secondary text-muted-foreground hover:bg-secondary/80"
+                  }`}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {loading ? (
                 Array.from({ length: 6 }).map((_, i) => (
                   <Card key={i} className="border-border">
@@ -147,13 +194,19 @@ export default function Reports() {
                   </Card>
                 ))
               ) : (
-                reportTemplates.map((report) => {
+                reportTemplates
+                  .filter(r => filterFreq === "All" || r.frequency === filterFreq)
+                  .map((report) => {
                   const Icon = categoryIconMap[report.category] ?? FileText;
                   return (
-                    <Card key={report.id} className="border-border hover:border-primary/30 transition-colors group">
+                    <Card 
+                      key={report.id} 
+                      onClick={() => handleDownload(report.title, report.type)}
+                      className="border-border hover:border-primary/50 transition-all group cursor-pointer hover:shadow-md hover:-translate-y-1"
+                    >
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between mb-3">
-                          <div className="p-2 rounded-lg bg-primary/10 border border-primary/20">
+                          <div className="p-2 rounded-lg bg-primary/10 border border-primary/20 group-hover:bg-primary/20 transition-colors">
                             <Icon size={16} className="text-primary" />
                           </div>
                           <div className="flex items-center gap-1">
@@ -163,17 +216,17 @@ export default function Reports() {
                             <Badge variant="outline" className="text-[10px]">{report.frequency}</Badge>
                           </div>
                         </div>
-                        <h3 className="text-sm font-semibold text-foreground mb-1">{report.title}</h3>
+                        <h3 className="text-sm font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">{report.title}</h3>
                         <p className="text-[11px] text-muted-foreground leading-relaxed mb-3">{report.description}</p>
                         <div className="flex items-center justify-between pt-3 border-t border-border">
                           <div className="text-[10px] text-muted-foreground">
                             <span>Last: {report.lastGenerated}</span>
                             <span className="ml-2">· {report.size}</span>
                           </div>
-                          <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-primary/10 text-primary border border-primary/20 text-[11px] font-medium hover:bg-primary/20 transition-colors">
+                          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-primary/10 text-primary border border-primary/20 text-[11px] font-medium group-hover:bg-primary group-hover:text-primary-foreground transition-all">
                             <Download size={11} />
                             Download
-                          </button>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
@@ -271,7 +324,10 @@ export default function Reports() {
                       />
                       <div className="flex items-center justify-between mt-2">
                         <span className="text-[10px] text-muted-foreground">Avg resolution: {dept.avgDays} days</span>
-                        <button className="flex items-center gap-1 text-[10px] text-primary hover:text-primary/80 transition-colors">
+                        <button 
+                          onClick={() => handleDownload(`${dept.name} Report`, 'CSV')}
+                          className="flex items-center gap-1 text-[10px] text-primary hover:text-primary/80 transition-colors"
+                        >
                           <Download size={10} /> Export
                         </button>
                       </div>

@@ -2,9 +2,11 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { riskZones } from "@/data/aiMockData";
-import { AlertTriangle, MapPin, ShieldAlert, TrendingUp, TrendingDown, ArrowRight } from "lucide-react";
+import { AlertTriangle, MapPin, ShieldAlert, TrendingUp, TrendingDown, ArrowRight, X } from "lucide-react";
+import { useState } from "react";
 
 export default function RiskIntelligence() {
+  const [selectedProtocol, setSelectedProtocol] = useState(null);
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       
@@ -93,7 +95,10 @@ export default function RiskIntelligence() {
                   />
                 </div>
 
-                <button className="px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-semibold rounded-md shadow flex items-center gap-1.5 transition-colors shrink-0">
+                <button 
+                  onClick={() => setSelectedProtocol(zone)}
+                  className="px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-semibold rounded-md shadow flex items-center gap-1.5 transition-colors shrink-0"
+                >
                   View Protocol <ArrowRight size={14} />
                 </button>
               </div>
@@ -101,6 +106,60 @@ export default function RiskIntelligence() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Protocol Modal */}
+      {selectedProtocol && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-xl shadow-2xl w-full max-w-lg p-6 relative">
+            <button 
+              onClick={() => setSelectedProtocol(null)}
+              className="absolute top-4 right-4 p-1 text-muted-foreground hover:text-foreground rounded-md hover:bg-accent transition-colors"
+            >
+              <X size={16} />
+            </button>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-primary/20 text-primary rounded-lg">
+                <AlertTriangle size={20} />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-foreground">Escalation Protocol</h3>
+                <p className="text-sm text-muted-foreground">Standard operating procedure</p>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="p-3 bg-muted/50 rounded-lg border border-border">
+                <h4 className="text-sm font-semibold text-foreground mb-1">Target Area</h4>
+                <div className="flex items-center gap-1 text-sm text-muted-foreground"><MapPin size={14} /> {selectedProtocol.area}</div>
+              </div>
+              
+              <div className="p-3 bg-muted/50 rounded-lg border border-border">
+                <h4 className="text-sm font-semibold text-foreground mb-1">Identified Issue</h4>
+                <p className="text-sm text-muted-foreground">{selectedProtocol.issue}</p>
+              </div>
+              
+              <div>
+                <h4 className="text-sm font-semibold text-foreground mb-2">Protocol Steps</h4>
+                <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground ml-1">
+                  <li>Notify respective municipal department head immediately.</li>
+                  <li>Dispatch rapid response team within 2 hours.</li>
+                  <li>Log status updates hourly until resolution.</li>
+                  <li>Conduct post-incident AI analysis for future prevention.</li>
+                </ol>
+              </div>
+            </div>
+            
+            <div className="mt-6 flex justify-end">
+              <button 
+                onClick={() => setSelectedProtocol(null)}
+                className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90"
+              >
+                Close Protocol
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

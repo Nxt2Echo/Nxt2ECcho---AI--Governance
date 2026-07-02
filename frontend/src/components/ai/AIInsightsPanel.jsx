@@ -1,9 +1,11 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { generatedInsights, recommendationsList } from "@/data/aiMockData";
-import { Lightbulb, Wrench, Sparkles, TrendingUp, Target, ArrowRight } from "lucide-react";
+import { Lightbulb, Wrench, Sparkles, TrendingUp, Target, ArrowRight, X, CheckCircle } from "lucide-react";
+import { useState } from "react";
 
 export default function AIInsightsPanel() {
+  const [modifyingRec, setModifyingRec] = useState(null);
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       
@@ -105,7 +107,10 @@ export default function AIInsightsPanel() {
                   <button className="flex-1 md:flex-none px-4 py-2 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 text-xs font-semibold rounded-md shadow-sm transition-colors flex items-center justify-center gap-1.5">
                     Approve Action
                   </button>
-                  <button className="px-3 py-2 border border-border text-foreground hover:bg-muted text-xs font-semibold rounded-md transition-colors flex items-center gap-1.5">
+                  <button 
+                    onClick={() => setModifyingRec(rec)}
+                    className="px-3 py-2 border border-border text-foreground hover:bg-muted text-xs font-semibold rounded-md transition-colors flex items-center gap-1.5"
+                  >
                     Modify <ArrowRight size={14} />
                   </button>
                 </div>
@@ -116,9 +121,84 @@ export default function AIInsightsPanel() {
         </CardContent>
       </Card>
 
+      {/* Modify Modal */}
+      {modifyingRec && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-xl shadow-2xl w-full max-w-lg p-6 relative">
+            <button 
+              onClick={() => setModifyingRec(null)}
+              className="absolute top-4 right-4 p-1 text-muted-foreground hover:text-foreground rounded-md hover:bg-accent transition-colors"
+            >
+              <X size={16} />
+            </button>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-primary/20 text-primary rounded-lg">
+                <Wrench size={20} />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-foreground">Modify Recommendation</h3>
+                <p className="text-sm text-muted-foreground">Adjust parameters before approval</p>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Target Area</label>
+                <input 
+                  type="text" 
+                  disabled
+                  defaultValue={modifyingRec.target} 
+                  className="w-full bg-muted/50 border border-border rounded-lg px-3 py-2 text-sm text-muted-foreground cursor-not-allowed" 
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Suggested Action</label>
+                <textarea 
+                  defaultValue={modifyingRec.action} 
+                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all resize-none h-20" 
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">Assigned Dept</label>
+                  <select className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-primary outline-none">
+                    <option>{modifyingRec.dept}</option>
+                    <option>Sanitation Dept</option>
+                    <option>Traffic Police</option>
+                    <option>Water Board</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">Est. Resolution Time</label>
+                  <input 
+                    type="text" 
+                    defaultValue={modifyingRec.resolutionTime} 
+                    className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-primary outline-none" 
+                  />
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-6 flex justify-end gap-3">
+              <button 
+                onClick={() => setModifyingRec(null)}
+                className="px-4 py-2 border border-border text-foreground hover:bg-muted rounded-lg text-sm font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => setModifyingRec(null)}
+                className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+              >
+                Save & Approve
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
-
-// Additional required icon
-import { CheckCircle } from "lucide-react";

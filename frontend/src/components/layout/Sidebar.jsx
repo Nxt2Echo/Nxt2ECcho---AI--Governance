@@ -10,7 +10,8 @@ import {
   CheckCircle2,
   Clock,
 } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -31,14 +32,16 @@ const quickStats = [
 
 export default function Sidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   return (
     <aside className="w-64 bg-card border-r border-border flex flex-col shrink-0">
       {/* Brand */}
       <div className="px-5 py-5 border-b border-border">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-primary/20 border border-primary/30 flex items-center justify-center shrink-0">
-            <Brain size={16} className="text-primary" />
+          <div className="w-8 h-8 rounded-lg bg-transparent flex items-center justify-center shrink-0 overflow-hidden">
+            <img src="/logo.jpg" alt="Nxt2Echo Logo" className="w-full h-full object-cover rounded-md" />
           </div>
           <div>
             <h1 className="text-sm font-bold text-foreground tracking-tight">Nxt2Echo</h1>
@@ -111,13 +114,16 @@ export default function Sidebar() {
 
       {/* User Profile Footer */}
       <div className="p-3 border-t border-border">
-        <div className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-accent cursor-pointer transition-colors">
+        <div 
+          onClick={() => navigate("/settings")}
+          className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-accent cursor-pointer transition-colors"
+        >
           <div className="w-7 h-7 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-xs font-bold text-primary shrink-0">
-            GO
+            {user?.name?.substring(0, 2).toUpperCase() || "GO"}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-foreground truncate">Gov. Officer</p>
-            <p className="text-[10px] text-muted-foreground truncate">BBMP — Bengaluru</p>
+            <p className="text-xs font-medium text-foreground truncate">{user?.name || "Gov. Officer"}</p>
+            <p className="text-[10px] text-muted-foreground truncate">{user?.department || "BBMP"} — {user?.city || "Bengaluru"}</p>
           </div>
           <ChevronRight size={12} className="text-muted-foreground" />
         </div>
